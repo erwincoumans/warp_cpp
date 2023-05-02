@@ -47,7 +47,7 @@ b:100 200 300 400 500 600 700 800
 Sum:101.1 202.2 303.3 404.4 505.5 606.6 707.7 808.8
 ```
 
-The Warp kernel C++ signature is
+You can extract the Warp kernel C++ signature from the Warp generated c++ code in the cache/gen folder (gen\wp___main__.cpp)
 ```
 // CPU entry points
 void (*add_float_arrays_cpu_forward)(launch_bounds_t dim,
