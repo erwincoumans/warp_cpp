@@ -12,7 +12,17 @@ cd warp
 python build_lib.py --cuda_path=/usr/local/warp
 pip install -e .
 ```
-Run the Warp Python example to jit compile the example_add_float_array.py
+example_add_float_array.py has this Warp kernel:
+```
+@wp.kernel
+def add_float_arrays(dest: wp.array(dtype=wp.float32),
+             a: wp.array(dtype=wp.float32),
+             b: wp.array(dtype=wp.float32)):
+
+    tid = wp.tid()
+    dest[tid] = a[tid]+b[tid]
+```
+Run this Warp Python example to jit compile the example_add_float_array.py
 ```
 python example_add_float_array.py
 Warp 0.8.2 initialized:
@@ -36,3 +46,13 @@ a:1.1 2.2 3.3 4.4 5.5 6.6 7.7 8.8
 b:100 200 300 400 500 600 700 800
 Sum:101.1 202.2 303.3 404.4 505.5 606.6 707.7 808.8
 ```
+
+The Warp kernel C++ signature is
+```
+// CPU entry points
+void (*add_float_arrays_cpu_forward)(launch_bounds_t dim,
+array_t<float32> var_dest,
+array_t<float32> var_a,
+array_t<float32> var_b);
+```
+The array_t and other Warp definitions are in the builtin.h header file.
