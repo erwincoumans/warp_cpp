@@ -37,11 +37,11 @@ dest.numpy()= [100.5      101.98572  103.47143  104.95714  106.442856 107.92857
  ```
 Note the Kernel cache path, it will contain the compiled Warp kernel as CPU DLL or CUDA PTX binary.
 
-Use cmake, compile and run the C++ example_add_float_array.cpp
+Use cmake, compile and run the C++ example_add_float_array_cpu.cpp and example_add_float_array_cuda.cpp
 ```
 cmake .
 cmake --build .
-Debug\example_add_float_array.exe
+Debug\example_add_float_array_cpu.exe
 a:1.1 2.2 3.3 4.4 5.5 6.6 7.7 8.8
 b:100 200 300 400 500 600 700 800
 Sum:101.1 202.2 303.3 404.4 505.5 606.6 707.7 808.8
@@ -56,3 +56,14 @@ array_t<float32> var_a,
 array_t<float32> var_b);
 ```
 The array_t and other Warp definitions are in the builtin.h header file.
+
+Same for the cuda version, make sure to change device = "cpu" into device="cuda" to compile to CUDA/PTX.
+
+```
+Debug\example_add_float_array_cuda.exe
+hello cuda world
+CUDA driver version:12010
+CUDA device count:1
+len=22741
+Sum:101.1 202.2 303.3 404.4 505.5 606.6 707.7 808.8
+```
