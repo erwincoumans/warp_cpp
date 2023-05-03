@@ -25,9 +25,13 @@ SET(MSVC_INCREMENTAL_DEFAULT ON)
 
 PROJECT(warp_cpp)
 
-add_executable(example_add_float_array example_add_float_array.cpp )
+add_executable(example_add_float_array_cpu example_add_float_array_cpu.cpp )
+target_link_libraries(example_add_float_array_cpu  ${CMAKE_DL_LIBS})
+# target_compile_definitions(example_add_float_array_cpu PRIVATE . )
+# target_include_directories(example_add_float_array_cpu PRIVATE . )
 
-target_link_libraries(example_add_float_array  ${CMAKE_DL_LIBS})
-# target_compile_definitions(pendulum_example_tiny_gui PRIVATE USE_TINY )
-# target_include_directories(pendulum_example_tiny_gui PRIVATE ../src )
+add_executable(example_add_float_array_cuda example_add_float_array_cuda.cpp )
+target_link_libraries(example_add_float_array_cuda  ${CMAKE_DL_LIBS})
+# target_compile_definitions(example_add_float_array_cuda PRIVATE . )
+# target_include_directories(example_add_float_array_cuda PRIVATE . )
 

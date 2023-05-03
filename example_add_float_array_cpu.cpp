@@ -4,12 +4,8 @@
 #ifdef _WIN32
 #include <Windows.h>
 #define dlsym GetProcAddress
-#define DYNAMIC_CUDA_PATH "nvcuda.dll"
-#define DYNAMIC_CUDART_PATH "cudart64_110.dll"
 #else
 #include <dlfcn.h>
-#define DYNAMIC_CUDA_PATH "/usr/lib/x86_64-linux-gnu/libcuda.so"
-#define DYNAMIC_CUDART_PATH "/usr/local/cuda/lib64/libcudart.so"
 #endif
 
 #define WARP_CPU_TEST_KERNEL "C:/Users/erwin/AppData/Local/NVIDIA Corporation/warp/Cache/0.8.2/bin/wp___main__.dll"
@@ -34,7 +30,8 @@ int main(int argc, char* argv[])
     //load the DLL module that contains the kernel
     HMODULE warp_lib = (HMODULE)LoadLibraryA(WARP_CPU_TEST_KERNEL);
 #else
-    void* warp_lib = dlopen(DYNAMIC_CUDA_PATH, RTLD_NOW);
+    //todo linux
+    void* warp_lib = dlopen(WARP_CPU_TEST_KERNEL, RTLD_NOW);
 #endif
     if (!warp_lib) {
         std::cout << "Unable to load library " << WARP_CPU_TEST_KERNEL << std::endl << std::endl;
