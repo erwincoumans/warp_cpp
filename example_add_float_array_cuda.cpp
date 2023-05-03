@@ -1,5 +1,3 @@
-//todo: only tested/developed on Windows, test/fix Linux version
-//todo: remove hardcoded path, let user/dev specify path through build system (CMake)
 #include "warp/native/builtin.h"
 
 #include <iostream>
