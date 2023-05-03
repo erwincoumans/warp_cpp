@@ -1,3 +1,4 @@
+//todo: remove hardcoded path, let user/dev specify path through build system (CMake)
 #include "D:/dev/warp_cpp/third_party/warp/warp/native/builtin.h"
 
 #include <iostream>
@@ -231,6 +232,7 @@ int main(int argc, char* argv[])
 
 
     // Load the PTX file
+    //todo: remove hardcoded path, let user/dev specify path through command-line arguments
     std::string ptxSource = readFile("C:/Users/erwin/AppData/Local/NVIDIA Corporation/warp/Cache/0.8.2/bin/wp___main__.sm70.ptx");
     printf("len=%d\n", ptxSource.length());
 
