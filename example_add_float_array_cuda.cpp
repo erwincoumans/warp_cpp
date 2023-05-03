@@ -1,6 +1,6 @@
 //todo: only tested/developed on Windows, test/fix Linux version
 //todo: remove hardcoded path, let user/dev specify path through build system (CMake)
-#include "D:/dev/warp_cpp/third_party/warp/warp/native/builtin.h"
+#include "warp/native/builtin.h"
 
 #include <iostream>
 #include <fstream>
@@ -86,7 +86,8 @@ enum  cudaMemcpyKind
 std::string readFile(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        throw std::runtime_error("Failed to open file: " + filename);
+        std::cout << "Failed to open file: " << filename << std::endl;
+        exit(1);
     }
     return std::string(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
 }
@@ -166,6 +167,16 @@ struct CudaVector
 
 int main(int argc, char* argv[])
 {
+
+    const char* ptx_filename = "C:/Users/erwin/AppData/Local/NVIDIA Corporation/warp/Cache/0.8.2/bin/wp___main__.sm70.ptx";
+
+    if (argc > 1)
+    {
+        ptx_filename = argv[1];
+    }
+    std::cout << "PTX filename:" << ptx_filename << std::endl;
+
+
 #ifdef _WIN32
     HMODULE cuda_lib = (HMODULE)LoadLibraryA(DYNAMIC_CUDA_PATH);
 #else
@@ -234,8 +245,8 @@ int main(int argc, char* argv[])
 
     // Load the PTX file
     //todo: remove hardcoded path, let user/dev specify path through command-line arguments
-    std::string ptxSource = readFile("C:/Users/erwin/AppData/Local/NVIDIA Corporation/warp/Cache/0.8.2/bin/wp___main__.sm70.ptx");
-    printf("len=%d\n", ptxSource.length());
+    std::string ptxSource = readFile(ptx_filename);
+    printf("PTX file length=%d\n", ptxSource.length());
 
     // Create a CUDA module from the PTX source
     CUmodule cuModule;

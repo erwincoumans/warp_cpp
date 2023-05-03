@@ -12,6 +12,14 @@ if (NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)
 endif()
 
 
+if(DEFINED WARP_PATH)
+  message(STATUS "WARP_PATH is defined with value: ${WARP_PATH}")
+else()
+  set(WARP_PATH "D:/dev/warp_cpp/third_party/warp")
+  message(STATUS "WARP_PATH is not defined, using hard-coded path: ${WARP_PATH}")
+endif()
+
+
 
 if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
@@ -27,11 +35,13 @@ PROJECT(warp_cpp)
 
 add_executable(example_add_float_array_cpu example_add_float_array_cpu.cpp )
 target_link_libraries(example_add_float_array_cpu  ${CMAKE_DL_LIBS})
+target_include_directories(example_add_float_array_cpu PRIVATE ${WARP_PATH} . )
+
 # target_compile_definitions(example_add_float_array_cpu PRIVATE . )
-# target_include_directories(example_add_float_array_cpu PRIVATE . )
 
 add_executable(example_add_float_array_cuda example_add_float_array_cuda.cpp )
 target_link_libraries(example_add_float_array_cuda  ${CMAKE_DL_LIBS})
+target_include_directories(example_add_float_array_cuda PRIVATE ${WARP_PATH} . )
+
 # target_compile_definitions(example_add_float_array_cuda PRIVATE . )
-# target_include_directories(example_add_float_array_cuda PRIVATE . )
 
