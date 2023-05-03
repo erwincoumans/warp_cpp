@@ -1,6 +1,9 @@
 # warp_cpp
 Examples calling [NVIDIA Warp](https://github.com/nvidia/warp) precompiled (cached) kernels directly from C++ (without Python)
 
+* Issue 1: Only tested/developed on Windows, will fix Linux version soon
+* Issue 2: contains hardcoded path for kernel cache directory and warp header include, will fix soon
+
 ## Usage
 
 Install Warp
