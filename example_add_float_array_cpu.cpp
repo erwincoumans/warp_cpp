@@ -1,3 +1,4 @@
+//todo: remove hardcoded path, let user/dev specify path through build system (CMake)
 #include "D:/dev/warp_cpp/third_party/warp/warp/native/builtin.h"
 
 
@@ -8,6 +9,7 @@
 #include <dlfcn.h>
 #endif
 
+//todo: remove hardcoded path, let user/dev specify path through command-line arguments
 #define WARP_CPU_TEST_KERNEL "C:/Users/erwin/AppData/Local/NVIDIA Corporation/warp/Cache/0.8.2/bin/wp___main__.dll"
 
 using namespace wp;
