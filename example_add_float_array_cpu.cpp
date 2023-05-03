@@ -10,8 +10,6 @@
 #include <dlfcn.h>
 #endif
 
-//todo: remove hardcoded path, let user/dev specify path through command-line arguments
-#define WARP_CPU_TEST_KERNEL "C:/Users/erwin/AppData/Local/NVIDIA Corporation/warp/Cache/0.8.2/bin/wp___main__.dll"
 
 using namespace wp;
 
@@ -28,23 +26,35 @@ array_t<float32> var_b);
 int main(int argc, char* argv[])
 {
 #ifdef _WIN32
+    const char* cpu_kernel_filename = "C:/Users/erwin/AppData/Local/NVIDIA Corporation/warp/Cache/0.8.2/bin/wp___main__.dll";
+#else
+    const char* cpu_kernel_filename = "/home/ecoumans/.cache/warp/0.8.2/bin/wp___main__.so";
+#endif
+    if (argc > 1)
+    {
+        cpu_kernel_filename = argv[1];
+    }
+    std::cout << "PTX filename:" << cpu_kernel_filename << std::endl;
+
+
+#ifdef _WIN32
     //module depends on warp.dll, so point to its location
-    SetDllDirectory("D:/dev/warp_cpp/third_party/warp/warp/bin");
+    SetDllDirectory(cpu_kernel_filename);
     //load the DLL module that contains the kernel
-    HMODULE warp_lib = (HMODULE)LoadLibraryA(WARP_CPU_TEST_KERNEL);
+    HMODULE warp_lib = (HMODULE)LoadLibraryA(cpu_kernel_filename);
 #else
     //todo linux
-    void* warp_lib = dlopen(WARP_CPU_TEST_KERNEL, RTLD_NOW);
+    void* warp_lib = dlopen(cpu_kernel_filename, RTLD_NOW);
 #endif
     if (!warp_lib) {
-        std::cout << "Unable to load library " << WARP_CPU_TEST_KERNEL << std::endl << std::endl;
+        std::cout << "Unable to load library " << cpu_kernel_filename << std::endl << std::endl;
         return false;
     }
     std::string func_name = "add_float_arrays_cpu_forward";
     add_float_arrays_cpu_forward = reinterpret_cast<decltype(add_float_arrays_cpu_forward)> (dlsym(warp_lib, func_name.c_str()));
     if (!add_float_arrays_cpu_forward)
     {
-        std::cout << "Unable to get function " << func_name << " from library " << WARP_CPU_TEST_KERNEL << std::endl << std::endl;
+        std::cout << "Unable to get function " << func_name << " from library " << cpu_kernel_filename << std::endl << std::endl;
         return false;
     }
     wp::launch_bounds_t bounds;
