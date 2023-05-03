@@ -1,9 +1,6 @@
 # warp_cpp
 Examples calling [NVIDIA Warp](https://github.com/nvidia/warp) precompiled (cached) kernels directly from C++ (without Python)
 
-* Issue 1: Only tested/developed on Windows, will fix Linux version soon
-* Issue 2: contains hardcoded path for kernel cache directory and warp header include, will fix soon
-
 ## Usage
 
 Install Warp
@@ -41,10 +38,12 @@ dest.numpy()= [100.5      101.98572  103.47143  104.95714  106.442856 107.92857
 Note the Kernel cache path, it will contain the compiled Warp kernel as CPU DLL or CUDA PTX binary.
 
 Use cmake, compile and run the C++ example_add_float_array_cpu.cpp and example_add_float_array_cuda.cpp
+Use the variable WARP_PATH to point to the location of the Warp source root
+When running example_add_float_array_cpu, pass the location to the .dll / .so Warp compiled kernel file:
 ```
-cmake .
+cmake -DWARP_PATH=/home/ecoumans/dev/warp_cpp/warp .
 cmake --build .
-Debug\example_add_float_array_cpu.exe
+./example_add_float_array_cpu /home/ecoumans/.cache/warp/0.8.2/bin/wp___main__.so
 a:1.1 2.2 3.3 4.4 5.5 6.6 7.7 8.8
 b:100 200 300 400 500 600 700 800
 Sum:101.1 202.2 303.3 404.4 505.5 606.6 707.7 808.8
@@ -61,9 +60,9 @@ array_t<float32> var_b);
 The array_t and other Warp definitions are in the builtin.h header file.
 
 Same for the cuda version, make sure to change device = "cpu" into device="cuda" to compile to CUDA/PTX.
-
+Pass the path to the PTX file as first argument:
 ```
-Debug\example_add_float_array_cuda.exe
+./example_add_float_array_cuda /home/ecoumans/.cache/warp/0.8.2/bin/wp___main__.sm70.ptx
 hello cuda world
 CUDA driver version:12010
 CUDA device count:1
