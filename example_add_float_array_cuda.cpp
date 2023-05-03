@@ -1,3 +1,5 @@
+#include "D:/dev/warp_cpp/third_party/warp/warp/native/builtin.h"
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -250,29 +252,45 @@ int main(int argc, char* argv[])
 
     int num_items = 8;
 
-    CudaVector< launch_bounds_t> bounds_cuda;
-    bounds_cuda.resize(1);
-    bounds_cuda.m_hostMem[0].ndim = 1;
-    bounds_cuda.m_hostMem[0].shape[0] = num_items;//??
-    bounds_cuda.m_hostMem[0].size = num_items;
-    bounds_cuda.copyToCuda();
+    launch_bounds_t bounds_cuda;
+    bounds_cuda.ndim = 1;
+    bounds_cuda.shape[0] = num_items;//??
+    bounds_cuda.size = num_items;
 
-    CudaVector<float> a, b, c;
+    wp::array_t<float> var_dest, var_a, var_b;
+
+    CudaVector<float> a, b, dest;
     a.resize(num_items);
     a.m_hostMem = { 1.1,2.2,3.3,4.4,5.5,6.6,7.7,8.8 };
     b.resize(num_items);
     b.m_hostMem = { 100.,200.,300.,400.,500.,600.,700.,800. };
-    c.resize(num_items);
-    c.m_hostMem = { -1.,-1., -1., -1., -1., -1., -1., -1. };
+    dest.resize(num_items);
+    dest.m_hostMem = { -1.,-1., -1., -1., -1., -1., -1., -1. };
 
     a.copyToCuda();
     b.copyToCuda();
-    c.copyToCuda();
+    dest.copyToCuda();
+
+
+    var_dest.ndim = 1;
+    var_dest.shape[0] = num_items;
+    var_dest.strides[0] = sizeof(float);
+    var_dest.data = dest.m_cudaMem;
+
+    var_a.ndim = 1;
+    var_a.shape[0] = num_items;
+    var_a.strides[0] = sizeof(float);
+    var_a.data = a.m_cudaMem;
+
+    var_b.ndim = 1;
+    var_b.shape[0] = num_items;
+    var_b.strides[0] = sizeof(float);
+    var_b.data = b.m_cudaMem;
 
     // Set up kernel arguments
-    void* args[] = { &bounds_cuda.m_cudaMem, &c.m_cudaMem , &a.m_cudaMem, &b.m_cudaMem };
+    void* args[] = { &bounds_cuda, &var_dest , &var_a, &var_b };
 
-    int numThreadsPerBlock = 64;
+    int numThreadsPerBlock = 256;
     int numPairsPerBlock = numThreadsPerBlock / 4;
     int numBlocks = (num_items + (numPairsPerBlock - 1)) / numPairsPerBlock;
     //numBlocks = 1;
@@ -290,11 +308,11 @@ int main(int argc, char* argv[])
 
     a.copyToCpu();
     b.copyToCpu();
-    c.copyToCpu();
+    dest.copyToCpu();
 
     std::cout << "Sum:";
 
-    for (auto const& c : c.m_hostMem)
+    for (auto const& c : dest.m_hostMem)
         std::cout << c << ' ';
     std::cout << std::endl;
 
