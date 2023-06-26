@@ -21,25 +21,36 @@ array_t<float32> var_b);
 #include <vector>
 #include <iostream>
 
+// warp-clang.dll entry function pointer signatures
+using lookup_func = uint64_t (*)(const char* dll_name, const char* function_name);
+using load_obj_func = int (*)(const char* object_file, const char* module_name);
+
 int main(int argc, char* argv[])
 {
 #ifdef _WIN32
-    const char* cpu_kernel_filename = "C:/Users/erwin/AppData/Local/NVIDIA Corporation/warp/Cache/0.8.2/bin/wp___main__.dll";
+    const char* cpu_kernel_filename_env = "%LOCALAPPDATA%/NVIDIA Corporation/warp/Cache/0.9.0/bin/wp___main__.o";
 #else
     const char* cpu_kernel_filename = "/home/ecoumans/.cache/warp/0.8.2/bin/wp___main__.so";
 #endif
     if (argc > 1)
     {
-        cpu_kernel_filename = argv[1];
+        // TODO
+        // cpu_kernel_filename = argv[1];
     }
+
+    char cpu_kernel_filename[4096];
+    ExpandEnvironmentStringsA(cpu_kernel_filename_env, cpu_kernel_filename, 4096);
+
     std::cout << "PTX filename:" << cpu_kernel_filename << std::endl;
 
 
 #ifdef _WIN32
-    //module depends on warp.dll, so point to its location
-    SetDllDirectory(cpu_kernel_filename);
+    const char* warp_clang_dll_env = "%WARP_PATH%/warp/bin/warp-clang.dll";
+    char warp_clang_dll[4096];
+    ExpandEnvironmentStringsA(warp_clang_dll_env, warp_clang_dll, 4096);
+
     //load the DLL module that contains the kernel
-    HMODULE warp_lib = (HMODULE)LoadLibraryA(cpu_kernel_filename);
+    HMODULE warp_lib = (HMODULE)LoadLibraryA(warp_clang_dll);
 #else
     //todo linux
     void* warp_lib = dlopen(cpu_kernel_filename, RTLD_NOW);
@@ -48,8 +59,14 @@ int main(int argc, char* argv[])
         std::cout << "Unable to load library " << cpu_kernel_filename << std::endl << std::endl;
         return false;
     }
+
+    auto *load_obj = reinterpret_cast<load_obj_func>(GetProcAddress(warp_lib, "load_obj"));
+    auto *lookup = reinterpret_cast<lookup_func>(GetProcAddress(warp_lib, "lookup"));
+
+    load_obj(cpu_kernel_filename, "kernel_module");
+
     std::string func_name = "add_float_arrays_cpu_forward";
-    add_float_arrays_cpu_forward = reinterpret_cast<decltype(add_float_arrays_cpu_forward)> (dlsym(warp_lib, func_name.c_str()));
+    add_float_arrays_cpu_forward = reinterpret_cast<decltype(add_float_arrays_cpu_forward)>(lookup("kernel_module", func_name.c_str()));
     if (!add_float_arrays_cpu_forward)
     {
         std::cout << "Unable to get function " << func_name << " from library " << cpu_kernel_filename << std::endl << std::endl;
