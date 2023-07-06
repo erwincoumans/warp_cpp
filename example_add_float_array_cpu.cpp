@@ -6,6 +6,7 @@
 #define dlsym GetProcAddress
 #else
 #include <dlfcn.h>
+#include <wordexp.h>
 #endif
 
 
@@ -18,6 +19,7 @@ array_t<float32> var_a,
 array_t<float32> var_b);
 
 
+#include <cassert>
 #include <vector>
 #include <iostream>
 
@@ -25,43 +27,65 @@ array_t<float32> var_b);
 using lookup_func = uint64_t (*)(const char* dll_name, const char* function_name);
 using load_obj_func = int (*)(const char* object_file, const char* module_name);
 
+static void expand_environment_strings(const char* src, char* dst, size_t size)
+{
+    #if defined(_WIN32)
+        int ret = ExpandEnvironmentStringsA(src, dst, size);
+        assert(ret != 0 && ret <= size);
+    #else
+        wordexp_t exp_result;
+        int ret = wordexp(src, &exp_result, 0);
+        assert(ret == 0);
+        strncpy(dst, exp_result.we_wordv[0], size);
+        dst[size - 1] = '\0';
+        wordfree(&exp_result);
+    #endif
+}
+
 int main(int argc, char* argv[])
 {
-#ifdef _WIN32
-    const char* cpu_kernel_filename_env = "%LOCALAPPDATA%/NVIDIA Corporation/warp/Cache/0.9.0/bin/wp___main__.o";
-#else
-    const char* cpu_kernel_filename = "/home/ecoumans/.cache/warp/0.8.2/bin/wp___main__.so";
-#endif
+    #ifdef _WIN32
+        const char* cpu_kernel_filename = "%LOCALAPPDATA%/NVIDIA Corporation/warp/Cache/0.9.0/bin/wp___main__.o";
+    #else
+        const char* cpu_kernel_filename = "~/.cache/warp/0.9.0/bin/wp___main__.o";
+    #endif
+
     if (argc > 1)
     {
-        // TODO
-        // cpu_kernel_filename = argv[1];
+        cpu_kernel_filename = argv[1];
     }
 
-    char cpu_kernel_filename[4096];
-    ExpandEnvironmentStringsA(cpu_kernel_filename_env, cpu_kernel_filename, 4096);
+    char cpu_kernel_filename_expand[4096];
+    expand_environment_strings(cpu_kernel_filename, cpu_kernel_filename_expand, 4096);
+    cpu_kernel_filename = cpu_kernel_filename_expand;
 
     std::cout << "PTX filename:" << cpu_kernel_filename << std::endl;
 
 
-#ifdef _WIN32
-    const char* warp_clang_dll_env = "%WARP_PATH%/warp/bin/warp-clang.dll";
-    char warp_clang_dll[4096];
-    ExpandEnvironmentStringsA(warp_clang_dll_env, warp_clang_dll, 4096);
+    #ifdef _WIN32
+        const char* warp_clang_dll = "%WARP_PATH%/warp/bin/warp-clang.dll";
+    #else
+        const char* warp_clang_dll = "$WARP_PATH/warp/bin/warp-clang.so";
+    #endif
 
-    //load the DLL module that contains the kernel
-    HMODULE warp_lib = (HMODULE)LoadLibraryA(warp_clang_dll);
-#else
-    //todo linux
-    void* warp_lib = dlopen(cpu_kernel_filename, RTLD_NOW);
-#endif
-    if (!warp_lib) {
-        std::cout << "Unable to load library " << cpu_kernel_filename << std::endl << std::endl;
+    char warp_clang_dll_expand[4096];
+    expand_environment_strings(warp_clang_dll, warp_clang_dll_expand, 4096);
+    warp_clang_dll = warp_clang_dll_expand;
+
+    #ifdef _WIN32
+        HMODULE warp_lib = (HMODULE)LoadLibraryA(warp_clang_dll);
+    #else
+        void* warp_lib = dlopen(warp_clang_dll, RTLD_NOW);
+    #endif
+
+    if (!warp_lib)
+    {
+        std::cout << "Unable to load library " << warp_clang_dll << std::endl << std::endl;
         return false;
     }
 
-    auto *load_obj = reinterpret_cast<load_obj_func>(GetProcAddress(warp_lib, "load_obj"));
-    auto *lookup = reinterpret_cast<lookup_func>(GetProcAddress(warp_lib, "lookup"));
+    auto *load_obj = reinterpret_cast<load_obj_func>(dlsym(warp_lib, "load_obj"));
+    auto *lookup = reinterpret_cast<lookup_func>(dlsym(warp_lib, "lookup"));
 
     load_obj(cpu_kernel_filename, "kernel_module");
 
