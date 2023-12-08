@@ -34,6 +34,7 @@ PROJECT(warp_cpp)
 
 add_executable(example_add_float_array_cpu example_add_float_array_cpu.cpp )
 target_link_libraries(example_add_float_array_cpu  ${CMAKE_DL_LIBS})
+target_compile_definitions(example_add_float_array_cpu PRIVATE -DWARP_PATH )
 target_include_directories(example_add_float_array_cpu PRIVATE ${WARP_PATH} . )
 
 # target_compile_definitions(example_add_float_array_cpu PRIVATE . )

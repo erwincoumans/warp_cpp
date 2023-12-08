@@ -59,14 +59,20 @@ int main(int argc, char* argv[])
     expand_environment_strings(cpu_kernel_filename, cpu_kernel_filename_expand, 4096);
     cpu_kernel_filename = cpu_kernel_filename_expand;
 
-    std::cout << "PTX filename:" << cpu_kernel_filename << std::endl;
+    std::cout << "filename:" << cpu_kernel_filename << std::endl;
 
 
     #ifdef _WIN32
-        const char* warp_clang_dll = "%WARP_PATH%/warp/bin/warp-clang.dll";
+        const char* warp_clang_dll = "../warp/warp/bin/warp-clang.dll";
     #else
-        const char* warp_clang_dll = "$WARP_PATH/warp/bin/warp-clang.so";
+        const char* warp_clang_dll = "../warp/warp/bin/warp-clang.so";
     #endif
+
+    if (argc > 2)
+    {
+        warp_clang_dll = argv[2];
+    }
+
 
     char warp_clang_dll_expand[4096];
     expand_environment_strings(warp_clang_dll, warp_clang_dll_expand, 4096);
