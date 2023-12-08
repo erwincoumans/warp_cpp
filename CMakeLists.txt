@@ -11,9 +11,7 @@ if (NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)
   endif()
 endif()
 
-
-if(DEFINED ENV{WARP_PATH})
-  set(WARP_PATH $ENV{WARP_PATH})
+if(DEFINED WARP_PATH)
   message(STATUS "WARP_PATH is defined with value: ${WARP_PATH}")
 else()
   set(WARP_PATH "D:/dev/warp_cpp/third_party/warp")
