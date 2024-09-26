@@ -22,6 +22,8 @@ array_t<float32> var_b);
 #include <cassert>
 #include <vector>
 #include <iostream>
+#include <fstream>
+#include <string>
 
 // warp-clang.dll entry function pointer signatures
 using lookup_func = uint64_t (*)(const char* dll_name, const char* function_name);
@@ -42,22 +44,37 @@ static void expand_environment_strings(const char* src, char* dst, size_t size)
     #endif
 }
 
+
 int main(int argc, char* argv[])
 {
-    #ifdef _WIN32
-        const char* cpu_kernel_filename = "%LOCALAPPDATA%/NVIDIA Corporation/warp/Cache/0.9.0/bin/wp___main__.o";
-    #else
-        const char* cpu_kernel_filename = "~/.cache/warp/0.9.0/bin/wp___main__.o";
-    #endif
+    std::ifstream file("mangled_names_cpu.txt");
+    std::vector<std::string> strings;
+    std::string line;
+
+    if (!file) {
+        std::cerr << "Unable to open file" << std::endl;
+        std::cout << "Please run python example_add_float_array.py and make sure the file mangled_names_cpu.txt exists." << std::endl;
+        return 1; // Error code
+    }
+
+    while (std::getline(file, line)) {
+        strings.push_back(line);
+    }
+
+    file.close();
+
+    std::string cpu_kernel_filename = strings[0] + "/" + strings[1]+"/"+strings[2];
+    
+    std::string func_name = strings[3];
 
     if (argc > 1)
     {
         cpu_kernel_filename = argv[1];
     }
 
-    char cpu_kernel_filename_expand[4096];
-    expand_environment_strings(cpu_kernel_filename, cpu_kernel_filename_expand, 4096);
-    cpu_kernel_filename = cpu_kernel_filename_expand;
+    //char cpu_kernel_filename_expand[4096];
+    //expand_environment_strings(cpu_kernel_filename, cpu_kernel_filename_expand, 4096);
+    //cpu_kernel_filename = cpu_kernel_filename_expand;
 
     std::cout << "filename:" << cpu_kernel_filename << std::endl;
 
@@ -93,10 +110,11 @@ int main(int argc, char* argv[])
     auto *load_obj = reinterpret_cast<load_obj_func>(dlsym(warp_lib, "load_obj"));
     auto *lookup = reinterpret_cast<lookup_func>(dlsym(warp_lib, "lookup"));
 
-    load_obj(cpu_kernel_filename, "kernel_module");
+    int kernel_ptr = load_obj(cpu_kernel_filename.c_str(), "kernel_module");
 
-    std::string func_name = "add_float_arrays_cpu_forward";
-    add_float_arrays_cpu_forward = reinterpret_cast<decltype(add_float_arrays_cpu_forward)>(lookup("kernel_module", func_name.c_str()));
+    
+    auto func_ptr = lookup("kernel_module", func_name.c_str());
+    add_float_arrays_cpu_forward = reinterpret_cast<decltype(add_float_arrays_cpu_forward)>(func_ptr);
     if (!add_float_arrays_cpu_forward)
     {
         std::cout << "Unable to get function " << func_name << " from library " << cpu_kernel_filename << std::endl << std::endl;

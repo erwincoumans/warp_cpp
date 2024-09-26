@@ -3,6 +3,9 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <string>
+
+
 
 #ifdef _WIN32
 #include <windows.h>
@@ -166,14 +169,31 @@ struct CudaVector
 int main(int argc, char* argv[])
 {
 
-    const char* ptx_filename = "C:/Users/erwin/AppData/Local/NVIDIA Corporation/warp/Cache/0.8.2/bin/wp___main__.sm70.ptx";
+    std::ifstream file("mangled_names_cuda.txt");
+    std::vector<std::string> strings;
+    std::string line;
+
+    if (!file) {
+        std::cerr << "Unable to open file" << std::endl;
+        std::cout << "Please run python example_add_float_array.py and make sure the file mangled_names_cuda.txt exists." << std::endl;
+        return 1; // Error code
+    }
+
+    while (std::getline(file, line)) {
+        strings.push_back(line);
+    }
+
+    file.close();
+
+    std::string ptx_filename = strings[0]+"/"+strings[1]+ "/"+strings[2];//"C:/Users/erwincoumans/AppData/Local/NVIDIA/warp/Cache/1.3.3/wp___main___ae5e6e4/module_codegen.sm75.ptx";
+    std::string add_float_arrays_forward_method_name = strings[3];
 
     if (argc > 1)
     {
         ptx_filename = argv[1];
     }
     std::cout << "PTX filename:" << ptx_filename << std::endl;
-
+    std::cout << "add_float_arrays_forward_method_name:" << add_float_arrays_forward_method_name << std::endl;
 
 #ifdef _WIN32
     HMODULE cuda_lib = (HMODULE)LoadLibraryA(DYNAMIC_CUDA_PATH);
@@ -256,7 +276,8 @@ int main(int argc, char* argv[])
 
     // Get the kernel function from the module
     CUfunction cuFunction;
-    result = cuModuleGetFunction(&cuFunction, cuModule, "add_float_arrays_cuda_kernel_forward");
+    result = cuModuleGetFunction(&cuFunction, cuModule, add_float_arrays_forward_method_name.c_str());
+                                                         
     if (result != CUDA_SUCCESS) {
         std::cerr << "Failed to get CUDA function" << std::endl;
         return 1;
