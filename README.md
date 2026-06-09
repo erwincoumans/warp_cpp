@@ -1,3 +1,7 @@
+# NOTICE
+Warp now natively supports calling kernels and graphs directly from C++, see
+https://github.com/NVIDIA/warp/tree/main/warp/examples/cpp
+
 # warp_cpp
 Examples calling [NVIDIA Warp](https://github.com/nvidia/warp) precompiled (cached) kernels directly from C++ (without Python)
 
